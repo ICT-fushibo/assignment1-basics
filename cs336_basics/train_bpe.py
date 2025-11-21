@@ -5,6 +5,46 @@ from typing import BinaryIO, List, Tuple, Dict
 from collections import defaultdict, Counter
 from multiprocessing import Pool, cpu_count
 
+import json
+
+def save_tokenizer(vocab, merges, save_directory):
+    """
+    保存 tokenizer 为 vocab.json 和 merges.txt
+    """
+    os.makedirs(save_directory, exist_ok=True)
+    
+    # 1. 保存 vocab.json
+    # 标准格式通常是 {token_string: token_id}
+    # 你的 vocab 是 {token_id: token_bytes}，我们需要反转并解码
+    vocab_to_save = {}
+    for token_id, token_bytes in vocab.items():
+        try:
+            # 尝试 UTF-8 解码，如果为了兼容任意二进制，可以用 latin-1
+            token_str = token_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            # 如果包含无法解码的字节，使用 fallback (比如 latin-1 或 repr)
+            token_str = token_bytes.decode("latin-1")
+            
+        vocab_to_save[token_str] = token_id
+
+    with open(os.path.join(save_directory, "vocab.json"), "w", encoding="utf-8") as f:
+        json.dump(vocab_to_save, f, ensure_ascii=False, indent=2)
+
+    # 2. 保存 merges.txt
+    # 格式通常是第一行为注释或版本，后面每行一个 pair: "tokenA tokenB"
+    with open(os.path.join(save_directory, "merges.txt"), "w", encoding="utf-8") as f:
+        f.write("#version: 0.2\n") # 这是一个惯例头
+        for b1, b2 in merges:
+            try:
+                s1 = b1.decode("utf-8")
+                s2 = b2.decode("utf-8")
+            except UnicodeDecodeError:
+                s1 = b1.decode("latin-1")
+                s2 = b2.decode("latin-1")
+            f.write(f"{s1} {s2}\n")
+
+    print(f"Tokenizer saved to {save_directory}")
+
 def run_train_bpe_back(input_path:str,vocab_size:int,special_tokens:list[str]):
     '''Given the path to an input corpus, run train a BPE tokenizer and
     output its vocabulary and merges.
@@ -270,6 +310,9 @@ def run_train_bpe(input_path:str, vocab_size:int, special_tokens:list[str]):
             new_pretoken_counts[new_tup] += freq
         
         pretoken_counts = new_pretoken_counts
+        
+        if not next_id%100 :
+            print(next_id,vocab_size)
 
     return vocab,merges
 
@@ -278,17 +321,17 @@ def run_train_bpe(input_path:str, vocab_size:int, special_tokens:list[str]):
 if __name__=="__main__":
     import time
     import cProfile
-    input_path=r"/home/fu/assignment1-basics/data/owt_valid.txt"
-    vocab_size=50000
+    input_path=r"/home/fu/assignment1-basics/data/TinyStoriesV2-GPT4-train.txt"
+    vocab_size=10000
     special_tokens=["<|endoftext|>"]
     t1=time.time()
     run_train_bpe(input_path,vocab_size,special_tokens)
     t2=time.time()
     print(t2-t1)
-    t1=time.time()
-    run_train_bpe_back(input_path,vocab_size,special_tokens)
-    t2=time.time()
-    print(t2-t1)
+    # t1=time.time()
+    # run_train_bpe_back(input_path,vocab_size,special_tokens)
+    # t2=time.time()
+    # print(t2-t1)
     # cProfile.run('run_train_bpe(input_path,vocab_size,special_tokens)')
     
     

@@ -54,5 +54,5 @@ class Linear(torch.nn.Module):
         Returns:
             torch.Tensor: output ...,out_dim
         """
-        print(self.weight.shape,x.shape)
+        # print(self.weight.shape,x.shape)
         return x@self.weight.T

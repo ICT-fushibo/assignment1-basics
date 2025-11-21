@@ -200,7 +200,7 @@ def run_train_bpe_back(input_path:str,vocab_size:int,special_tokens:list[str]):
 
     return vocab,merges
 
-from cs336_basics import bpe_ops
+from cs336_basics.tokenizer import bpe_ops
 
 def run_train_bpe(input_path:str, vocab_size:int, special_tokens:list[str]):
     file_size = os.path.getsize(input_path)

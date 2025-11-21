@@ -316,7 +316,9 @@ def run_train_bpe(input_path:str, vocab_size:int, special_tokens:list[str]):
 
     return vocab,merges
 
-
+def run_train(input_path:str, vocab_size:int, special_tokens:list[str],save_dir:str):
+    vocab,merges=run_train_bpe(input_path,vocab_size,special_tokens)
+    save_tokenizer(vocab,merges,save_dir)
 
 if __name__=="__main__":
     import time

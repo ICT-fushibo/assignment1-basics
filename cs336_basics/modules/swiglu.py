@@ -16,4 +16,4 @@ class swiglu(nn.Module):
     def forward(self,x:torch.Tensor)->torch.Tensor:
         # torch.mul(((x@self.w1)/nn.Sigmoid(x)),x@self.w3)@self.w2
         print(self.w1.shape,self.w2.shape,self.w3.shape,x.shape)
-        return torch.mul(((x@self.w1)/torch.sigmoid(x@self.w1)),x@self.w3)@self.w2
+        return torch.mul(((x@self.w1)*torch.sigmoid(x@self.w1)),x@self.w3)@self.w2
